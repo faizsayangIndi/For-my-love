@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Love Message App</title>
+  <!-- Tailwind via CDN (Play CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Babel for JSX in browser (only for quick demo/copy-paste) -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(1); opacity: 0.95; }
+      50% { transform: translateY(-18px) scale(1.06); opacity: 1; }
+      100% { transform: translateY(-36px) scale(1); opacity: 0; }
+    }
+    @keyframes pulseGlow {
+      0% { filter: drop-shadow(0 0 0px rgba(255,0,80,0.14)); transform: scale(1); }
+      50% { filter: drop-shadow(0 0 18px rgba(255,0,80,0.28)); transform: scale(1.03); }
+      100% { filter: drop-shadow(0 0 0px rgba(255,0,80,0.14)); transform: scale(1); }
+    }
+    .heart-animation img {
+      animation: floatUp 1.6s ease-in-out forwards, pulseGlow 1.6s ease-in-out infinite;
+    }
+    .animate-fadeIn {
+      animation: fadeIn 420ms ease-out both;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useEffect, useRef, useState } = React;
+
+    function LoveMessageApp() {
+      const [showHeartAnimation, setShowHeartAnimation] = useState(false);
+      const [isMessageVisible, setIsMessageVisible] = useState(true);
+      const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+      const [isPlayingMusic, setIsPlayingMusic] = useState(false);
+
+      const romanticMessages = [
+        "Kamu adalah alasan Abang selalu tersenyum setiap hari.",
+        "Bersamamu, semua hari terasa indah dan penuh warna.",
+        "Terima kasih sudah jadi tempat pulang paling hangat untuk Abang.",
+        "Cinta kita sederhana: kamu, aku, dan secangkir doa."
+      ];
+
+      const audioRef = useRef(null);
+
+      useEffect(() => {
+        // create audio element (placeholder URL — replace with your file)
+        audioRef.current = new Audio("https://cdn.simple-music-host.example.com/romantic-loop.mp3");
+        audioRef.current.loop = true;
+
+        return () => {
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+          }
+        };
+      }, []);
+
+      useEffect(() => {
+        const rotateInterval = setInterval(() => {
+          setCurrentMessageIndex(idx => (idx + 1) % romanticMessages.length);
+          setIsMessageVisible(false);
+          setTimeout(() => setIsMessageVisible(true), 300);
+        }, 4500);
+
+        return () => clearInterval(rotateInterval);
+      }, []);
+
+      const handleSendLove = () => {
+        setShowHeartAnimation(true);
+        setTimeout(() => setShowHeartAnimation(false), 3000);
+      };
+
+      const toggleMusic = async () => {
+        if (!audioRef.current) return;
+        try {
+          if (isPlayingMusic) {
+            audioRef.current.pause();
+            setIsPlayingMusic(false);
+          } else {
+            await audioRef.current.play();
+            setIsPlayingMusic(true);
+          }
+        } catch (err) {
+          console.warn("Audio play blocked or failed:", err);
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-pink-50 to-rose-100 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+          {showHeartAnimation && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
+              <div className="heart-animation">
+                <img
+                  src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=240&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder"
+                  alt="Floating red heart with glowing romantic effect"
+                  className="w-24 h-24"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-pink-200 max-w-md mx-auto">
+            <h1 className="text-3xl font-bold text-rose-600 mb-6">Untuk Pacarku Tersayang</h1>
+
+            {isMessageVisible && (
+              <div className="mb-6 animate-fadeIn">
+                <p className="text-lg text-pink-700 font-medium bg-pink-50 p-4 rounded-xl border border-pink-200">
+                  "adek Abang jangan merajuk lagi yaa, Abang merasa kesepian kalau adeek merajuk"
+                </p>
+              </div>
+            )}
+
+            <div className="bg-rose-50 p-6 rounded-xl border border-rose-200 mb-6">
+              <p className="text-xl text-rose-800 font-semibold italic transition-all duration-500">
+                "{romanticMessages[currentMessageIndex]}"
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <button
+                onClick={() => {
+                  handleSendLove();
+                }}
+                className="bg-rose-600 hover:bg-rose-700 text-white font-medium py-3 px-6 rounded-full transition-colors shadow-lg"
+              >
+                Kirim Cinta 💖
+              </button>
+
+              <button
+                onClick={toggleMusic}
+                className={\`\${
+                  isPlayingMusic ? "bg-pink-500 hover:bg-pink-600" : "bg-pink-400 hover:bg-pink-500"
+                } text-white font-medium py-3 px-6 rounded-full transition-colors\`}
+              >
+                {isPlayingMusic ? "Stop Musik 🎵" : "Putar Musik Romantis 🎶"}
+              </button>
+            </div>
+          </div>
+
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+            <div className="flex space-x-4">
+              <img
+                src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c6?q=80&w=80&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder"
+                alt="Small decorative heart icon floating gently"
+                className="w-8 h-8 animate-bounce"
+              />
+              <img
+                src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=80&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder"
+                alt="Small decorative heart icon floating gently"
+                className="w-8 h-8 animate-bounce delay-150"
+              />
+              <img
+                src="https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=80&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder"
+                alt="Small decorative heart icon floating gently"
+                className="w-8 h-8 animate-bounce delay-300"
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<LoveMessageApp />);
+  </script>
+</body>
+</html>
